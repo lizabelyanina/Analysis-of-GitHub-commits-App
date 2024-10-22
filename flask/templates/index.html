@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags for character encoding and viewport -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Page title -->
+    <title>GitHub Commit Analyzer</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom styles -->
+    <style>
+        .table-container {
+            overflow-x: auto;
+        }
+        .plot-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main container -->
+    <div class="container mt-5">
+        <!-- Page header -->
+        <h1>Github commits as an object-centric event log</h1>
+        <p>This application analyzes GitHub repositories and generates an object-centric event log based on the commit history. Enter a public GitHub repository URL to get started.</p>
+        
+        <!-- Input form -->
+        <form method="POST">
+            <div class="mb-3">
+                <label for="user_input" class="form-label">Enter the GitHub link:</label>
+                <input type="text" class="form-control" id="user_input" name="user_input" required>
+            </div>
+            <!-- Checkbox for conventional commit standard -->
+            <label for="conventional">This repo follows the conventional commit standard</label>
+            <input type="checkbox" id="conventional" name="checkbox" value="is conventional"><br>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        
+        <!-- Display user input if available -->
+        {% if user_input %}
+            <p class="mt-3">You entered: {{ user_input }}</p>
+        {% endif %}
+        
+        <!-- Display result if available -->
+        {% if result %}
+            <p class="mt-3">Result:</p>
+            <pre>{{ result }}</pre>
+        {% endif %}
+        
+        <!-- Download files if available -->
+        {% if download_links %}
+            <h3>Download Files:</h3>
+            <ul>
+                {% for filename, link in download_links %}
+                    <li><a href="{{ link }}">Download {{ filename }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        
+        <!-- Display plots if available -->
+        {% if plots %}
+            <h2 class="mt-5">Repository Statistics</h2>
+            {% for plot in plots %}
+                <div class="plot-container">
+                    <img src="data:image/png;base64,{{ plot }}" alt="Repository Statistics Plot" class="img-fluid">
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Display contributor analysis if available -->
+        {% if contributor_data %}
+            <h2 class="mt-5">Contributor Analysis</h2>
+            <h3>Top 5 Contributors</h3>
+            <ul>
+            {% for email, commits in contributor_data.top_contributors.items() %}
+                <li>{{ email }}: {{ commits }} commits</li>
+            {% endfor %}
+            </ul>
+            <h3>Contributor Clustering</h3>
+            <div class="plot-container">
+                <img src="data:image/png;base64,{{ contributor_data.cluster_plot }}" alt="Contributor Clustering" class="img-fluid">
+            </div>
+            <h3>Cluster Summary</h3>
+            <div class="table-container">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Cluster ID</th>
+                            <th>Number of Authors</th>
+                            <th>Total Commits</th>
+                            <th>Average Commits</th>
+                            <th>Total Files Edited</th>
+                            <th>Avg Files per Author</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for cluster in contributor_data.cluster_summary %}
+                        <tr>
+                            <td>{{ cluster['Cluster ID'] }}</td>
+                            <td>{{ cluster['Number of Authors'] }}</td>
+                            <td>{{ cluster['Total Commits'] }}</td>
+                            <td>{{ cluster['Average Commits'] }}</td>
+                            <td>{{ cluster['Total Files Edited'] }}</td>
+                            <td>{{ cluster['Avg Files per Author'] }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <h3>All Authors</h3>
+            <div class="authors-list" style="max-height: 200px; overflow-y: auto;">
+                <ul>
+                {% for author in contributor_data.all_authors %}
+                    <li>{{ author }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        
+        <!-- Preview table if available -->
+        {% if preview %}
+            <h2 class="mt-5">Preview (Top 5 Rows)</h2>
+            <div class="table-container">
+                {{ preview|safe }}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
